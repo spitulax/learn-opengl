@@ -32,6 +32,7 @@ dependencies = [
   dependency('glm'),
 ]
 
+subdir('resources')
 subdir('deps')
 
 executable(

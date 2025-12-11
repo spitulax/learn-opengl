@@ -5,6 +5,7 @@
 , pkg-config
 , glfw
 , glm
+, unixtools
 , version ? "git"
 }:
 stdenv.mkDerivation {
@@ -16,6 +17,7 @@ stdenv.mkDerivation {
     meson
     ninja
     pkg-config
+    unixtools.xxd
   ];
 
   buildInputs = [
