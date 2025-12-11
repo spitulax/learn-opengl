@@ -3,9 +3,12 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include <GLFW/glfw3.h>
+
+/** MACROS **/
 
 #define WINDOW_WIDTH         800
 #define WINDOW_HEIGHT        600
@@ -13,16 +16,16 @@
 #define MAX_VBOS             16
 
 #define eprintf(...) fprintf(stderr, __VA_ARGS__)
+#define zero(ptr)    memset((ptr), 0, sizeof(*(ptr)))
+#define panic(msg)   assert(0 && (msg))
+#define scmp(a, b)   (strcmp((a), (b)) == 0)
+
 
 #define return_defer(value)                                                    \
     {                                                                          \
         res = (value);                                                         \
         goto defer;                                                            \
     }
-
-#define zero(ptr) memset(ptr, 0, sizeof(*ptr))
-
-#define panic(msg) assert(0 && msg)
 
 #define include_file(name)                                                     \
     extern unsigned char ___resources_##name[];                                \
@@ -34,6 +37,8 @@
                           ___resources_##file_name,                            \
                           ___resources_##file_name##_len)
 
+/** TYPES **/
+
 typedef GLsizeiptr ssize_t;
 
 typedef struct {
@@ -42,16 +47,25 @@ typedef struct {
     size_t vbo_len;
 } VAO;
 
+typedef enum {
+    TYPE_TRIANGLE,
+    TYPE_LEN,
+} Type;
+
+const char *type_str[TYPE_LEN] = {
+    [TYPE_TRIANGLE] = "triangle",
+};
+
 typedef struct {
     GLFWwindow *window;
     VAO         vao;
     GLuint      shader_prog;
+    Type        type;
 } Program;
 
-typedef enum {
-    TYPE_TRIANGLE,
-} Type;
+/** PROTOTYPES **/
 
+/* Utils */
 static void
 framebuffer_size_callback(GLFWwindow *window, int width, int height);
 static void     process_input(GLFWwindow *window);
@@ -59,11 +73,17 @@ static uint32_t compile_shader_manual(GLenum               type,
                                       const char          *file_name,
                                       const unsigned char *string,
                                       unsigned int         len);
-static bool     program_init(Program *self);
-static void     program_deinit(Program *self);
-static void     program_run(const Program *self, Type type);
+static Type     parse_args(int argc, char **argv);
+static void     usage(const char *prog);
+
+/* Program */
+static bool program_init(Program *self, Type type);
+static void program_deinit(Program *self);
+static void program_run(const Program *self);
 static void
 program_init_shader(Program *self, GLuint vert_shader, GLuint frag_shader);
+
+/* VAO */
 static void vao_init(VAO *self);
 static void vao_deinit(VAO *self);
 static void vao_add_vbo(
@@ -75,33 +95,39 @@ static void vao_vertex_attrib_ptr(VAO     *self,
                                   GLenum   type,
                                   bool     normalized,
                                   int32_t  stride);
-static void setup(Program *prog, Type type);
-static void draw(const Program *prog, Type type);
+
+/* Rendering */
+static void setup(Program *prog);
+static void draw(const Program *prog);
+
+/** FILES **/
 
 include_file(vert_glsl);
 include_file(frag_glsl);
 
+/** FUNCTIONS **/
+
 int main(int argc, char *argv[]) {
     int res = 0;
 
-    (void) argc;
-    (void) argv;
+    Type type = parse_args(argc, argv);
 
     Program prog;
-    if (!program_init(&prog)) {
+    if (!program_init(&prog, type)) {
         return_defer(1);
     }
 
-    Type type = TYPE_TRIANGLE;
-    setup(&prog, type);
+    setup(&prog);
 
-    program_run(&prog, type);
+    program_run(&prog);
 
 defer:
     program_deinit(&prog);
 
     return res;
 }
+
+/* Utils */
 
 static void
 framebuffer_size_callback(GLFWwindow *window, int width, int height) {
@@ -138,7 +164,47 @@ static uint32_t compile_shader_manual(GLenum               type,
     return shader;
 }
 
-static bool program_init(Program *self) {
+static Type parse_args(int argc, char **argv) {
+    const char *prog = argv[0];
+
+    if (argc != 2) {
+        eprintf("Invalid arguments\n");
+        usage(prog);
+        exit(1);
+    }
+
+    const char *subcommand = argv[1];
+    if (scmp(subcommand, "help") || scmp(subcommand, "--help") ||
+        scmp(subcommand, "-h")) {
+        usage(prog);
+        exit(0);
+    } else {
+        for (size_t i = 0; i < TYPE_LEN; ++i) {
+            if (scmp(subcommand, type_str[i])) {
+                return (Type) i;
+            }
+        }
+    }
+
+    eprintf("Invalid type `%s`\n", subcommand);
+    usage(prog);
+    exit(1);
+}
+
+static void usage(const char *prog) {
+    eprintf("Usage: %s <", prog);
+    for (size_t i = 0; i < TYPE_LEN; ++i) {
+        if (i > 0) {
+            eprintf(", ");
+        }
+        eprintf("%s", type_str[i]);
+    }
+    eprintf(">\n");
+}
+
+/* Program */
+
+static bool program_init(Program *self, Type type) {
     bool res = true;
 
     zero(self);
@@ -167,6 +233,8 @@ static bool program_init(Program *self) {
 
     vao_init(&self->vao);
 
+    self->type = type;
+
 defer:
     return res;
 }
@@ -181,14 +249,14 @@ static void program_deinit(Program *self) {
     zero(self);
 }
 
-static void program_run(const Program *self, Type type) {
+static void program_run(const Program *self) {
     while (!glfwWindowShouldClose(self->window)) {
         process_input(self->window);
 
         glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        draw(self, type);
+        draw(self);
 
         glfwSwapBuffers(self->window);
         glfwPollEvents();
@@ -214,6 +282,8 @@ program_init_shader(Program *self, GLuint vert_shader, GLuint frag_shader) {
     glDeleteShader(vert_shader);
     glDeleteShader(frag_shader);
 }
+
+/* VAO */
 
 static void vao_init(VAO *self) {
     zero(self);
@@ -254,8 +324,10 @@ static void vao_vertex_attrib_ptr(VAO     *self,
     glEnableVertexAttribArray(index);
 }
 
-static void setup(Program *prog, Type type) {
-    switch (type) {
+/* Rendering */
+
+static void setup(Program *prog) {
+    switch (prog->type) {
         case TYPE_TRIANGLE: {
             float vertices[] = {
                 0.0f,  0.5f,  0.0f,    //
@@ -281,8 +353,8 @@ static void setup(Program *prog, Type type) {
     }
 }
 
-static void draw(const Program *prog, Type type) {
-    switch (type) {
+static void draw(const Program *prog) {
+    switch (prog->type) {
         case TYPE_TRIANGLE: {
             glUseProgram(prog->shader_prog);
             glBindVertexArray(prog->vao.name);
