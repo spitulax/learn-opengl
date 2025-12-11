@@ -17,8 +17,12 @@
 
 #define eprintf(...) fprintf(stderr, __VA_ARGS__)
 #define zero(ptr)    memset((ptr), 0, sizeof(*(ptr)))
-#define panic(msg)   assert(0 && (msg))
-#define scmp(a, b)   (strcmp((a), (b)) == 0)
+#define panic(...)                                                             \
+    {                                                                          \
+        eprintf(__VA_ARGS__);                                                  \
+        abort();                                                               \
+    }
+#define scmp(a, b) (strcmp((a), (b)) == 0)
 
 
 #define return_defer(value)                                                    \
@@ -49,11 +53,13 @@ typedef struct {
 
 typedef enum {
     TYPE_TRIANGLE,
+    TYPE_SQUARE,
     TYPE_LEN,
 } Type;
 
 const char *type_str[TYPE_LEN] = {
     [TYPE_TRIANGLE] = "triangle",
+    [TYPE_SQUARE]   = "square",
 };
 
 typedef struct {
@@ -342,7 +348,7 @@ static void setup(Program *prog) {
             program_init_shader(prog, vert_shader, frag_shader);
         } break;
         default: {
-            panic("Unimplemented type");
+            panic("Unimplemented type\n");
         }
     }
 }
@@ -355,7 +361,7 @@ static void draw(const Program *prog) {
             glDrawArrays(GL_TRIANGLES, 0, 3);
         } break;
         default: {
-            panic("Unimplemented type");
+            panic("Unimplemented type\n");
         }
     }
 }
