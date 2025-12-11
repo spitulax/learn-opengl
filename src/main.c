@@ -68,7 +68,6 @@ typedef struct {
 /* Utils */
 static void
 framebuffer_size_callback(GLFWwindow *window, int width, int height);
-static void     process_input(GLFWwindow *window);
 static uint32_t compile_shader_manual(GLenum               type,
                                       const char          *file_name,
                                       const unsigned char *string,
@@ -79,7 +78,7 @@ static void     usage(const char *prog);
 /* Program */
 static bool program_init(Program *self, Type type);
 static void program_deinit(Program *self);
-static void program_run(const Program *self);
+static void program_run(Program *self);
 static void
 program_init_shader(Program *self, GLuint vert_shader, GLuint frag_shader);
 
@@ -99,6 +98,7 @@ static void vao_vertex_attrib_ptr(VAO     *self,
 /* Rendering */
 static void setup(Program *prog);
 static void draw(const Program *prog);
+static void process_input(Program *window);
 
 /** FILES **/
 
@@ -134,12 +134,6 @@ framebuffer_size_callback(GLFWwindow *window, int width, int height) {
     (void) window;
 
     glViewport(0, 0, width, height);
-}
-
-static void process_input(GLFWwindow *window) {
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
-        glfwSetWindowShouldClose(window, true);
-    }
 }
 
 static uint32_t compile_shader_manual(GLenum               type,
@@ -249,9 +243,9 @@ static void program_deinit(Program *self) {
     zero(self);
 }
 
-static void program_run(const Program *self) {
+static void program_run(Program *self) {
     while (!glfwWindowShouldClose(self->window)) {
-        process_input(self->window);
+        process_input(self);
 
         glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
@@ -363,5 +357,11 @@ static void draw(const Program *prog) {
         default: {
             panic("Unimplemented type");
         }
+    }
+}
+
+static void process_input(Program *prog) {
+    if (glfwGetKey(prog->window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
+        glfwSetWindowShouldClose(prog->window, true);
     }
 }
