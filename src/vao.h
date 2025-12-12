@@ -18,9 +18,9 @@ void vao_unbind();
 void vao_add_vbo(VAO *self, const void *data, ssize_t size, GLenum usage);
 void vao_set_ebo(VAO *self, const void *data, ssize_t size, GLenum usage);
 void vao_vertex_attrib_ptr(VAO     *self,
-                           GLuint   vbo,
                            uint32_t index,
                            int32_t  size,
+                           GLuint   offset,
+                           int32_t  stride,
                            GLenum   type,
-                           bool     normalized,
-                           int32_t  stride);
+                           bool     normalized);

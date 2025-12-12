@@ -9,6 +9,7 @@ typedef enum {
     TYPE_TRIANGLE,
     TYPE_SQUARE,
     TYPE_TWO_TRIANGLES,
+    TYPE_SHADER_TRIANGLE,
     TYPE_LEN,
 } Type;
 

@@ -32,6 +32,10 @@ void shader_unbind() {
     glUseProgram(0);
 }
 
+GLint shader_get_uniform(const Shader *self, const char *name) {
+    return glGetUniformLocation(self->name, name);
+}
+
 GLuint compile_shader_manual(GLenum               type,
                              const char          *file_name,
                              const unsigned char *string,

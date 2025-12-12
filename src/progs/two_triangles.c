@@ -22,13 +22,11 @@ void two_triangles_setup(Program *prog) {
 
     vao[0] = program_add_vao(prog);
     vao_add_vbo(vao[0], t1_vertices, sizeof(t1_vertices), GL_STATIC_DRAW);
-    vao_vertex_attrib_ptr(
-        vao[0], 0, 0, 3, GL_FLOAT, false, 3 * sizeof(t1_vertices[0]));
+    vao_vertex_attrib_ptr(vao[0], 0, 3, 0, 3 * sizeof(float), GL_FLOAT, false);
 
     vao[1] = program_add_vao(prog);
     vao_add_vbo(vao[1], t2_vertices, sizeof(t2_vertices), GL_STATIC_DRAW);
-    vao_vertex_attrib_ptr(
-        vao[1], 0, 0, 3, GL_FLOAT, false, 3 * sizeof(t2_vertices[0]));
+    vao_vertex_attrib_ptr(vao[1], 0, 3, 0, 3 * sizeof(float), GL_FLOAT, false);
 
     GLuint vert_shader =
         compile_shader(GL_VERTEX_SHADER, shaders_beginning_vert);

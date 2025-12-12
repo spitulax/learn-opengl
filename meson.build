@@ -30,6 +30,7 @@ include = [
 dependencies = [
   dependency('glfw3'),
   dependency('glm'),
+  cc.find_library('m'),
 ]
 
 subdir('resources')

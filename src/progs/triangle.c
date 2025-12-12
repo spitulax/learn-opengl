@@ -18,8 +18,7 @@ void triangle_setup(Program *prog) {
 
     vao = program_add_vao(prog);
     vao_add_vbo(vao, vertices, sizeof(vertices), GL_STATIC_DRAW);
-    vao_vertex_attrib_ptr(
-        vao, 0, 0, 3, GL_FLOAT, false, 3 * sizeof(vertices[0]));
+    vao_vertex_attrib_ptr(vao, 0, 3, 0, 3 * sizeof(float), GL_FLOAT, false);
 
     GLuint vert_shader =
         compile_shader(GL_VERTEX_SHADER, shaders_beginning_vert);

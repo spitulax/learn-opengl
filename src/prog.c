@@ -1,4 +1,5 @@
 #include "prog.h"
+#include "progs/shader_triangle.h"
 #include "progs/square.h"
 #include "progs/triangle.h"
 #include "progs/two_triangles.h"
@@ -7,27 +8,31 @@
 #include "vao.h"
 
 const char *prog_str[TYPE_LEN] = {
-    [TYPE_TRIANGLE]      = "triangle",
-    [TYPE_SQUARE]        = "square",
-    [TYPE_TWO_TRIANGLES] = "two_triangles",
+    [TYPE_TRIANGLE]        = "triangle",
+    [TYPE_SQUARE]          = "square",
+    [TYPE_TWO_TRIANGLES]   = "two_triangles",
+    [TYPE_SHADER_TRIANGLE] = "shader_triangle",
 };
 
 SetupF prog_setup[TYPE_LEN] = {
-    [TYPE_TRIANGLE]      = triangle_setup,
-    [TYPE_SQUARE]        = square_setup,
-    [TYPE_TWO_TRIANGLES] = two_triangles_setup,
+    [TYPE_TRIANGLE]        = triangle_setup,
+    [TYPE_SQUARE]          = square_setup,
+    [TYPE_TWO_TRIANGLES]   = two_triangles_setup,
+    [TYPE_SHADER_TRIANGLE] = shader_triangle_setup,
 };
 
 DrawF prog_draw[TYPE_LEN] = {
-    [TYPE_TRIANGLE]      = triangle_draw,
-    [TYPE_SQUARE]        = square_draw,
-    [TYPE_TWO_TRIANGLES] = two_triangles_draw,
+    [TYPE_TRIANGLE]        = triangle_draw,
+    [TYPE_SQUARE]          = square_draw,
+    [TYPE_TWO_TRIANGLES]   = two_triangles_draw,
+    [TYPE_SHADER_TRIANGLE] = shader_triangle_draw,
 };
 
 InputF prog_input[TYPE_LEN] = {
-    [TYPE_TRIANGLE]      = NULL,
-    [TYPE_SQUARE]        = NULL,
-    [TYPE_TWO_TRIANGLES] = NULL,
+    [TYPE_TRIANGLE]        = NULL,
+    [TYPE_SQUARE]          = NULL,
+    [TYPE_TWO_TRIANGLES]   = NULL,
+    [TYPE_SHADER_TRIANGLE] = NULL,
 };
 
 bool program_init(Program *self, Type type) {

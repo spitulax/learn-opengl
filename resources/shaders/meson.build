@@ -3,3 +3,5 @@ resource_files += files(
   'beginning.vert',
   'two_triangles_second.frag'
 )
+
+subdir('shader_triangle')
