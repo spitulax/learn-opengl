@@ -48,13 +48,13 @@ void two_triangles_draw(const Program *prog) {
 
     shader_bind(shader[0]);
     vao_bind(vao[0]);
-    glDrawArrays(GL_TRIANGLES, 0, 6);
+    glDrawArrays(GL_TRIANGLES, 0, 3);
     vao_unbind();
     shader_unbind();
 
     shader_bind(shader[1]);
     vao_bind(vao[1]);
-    glDrawArrays(GL_TRIANGLES, 0, 6);
+    glDrawArrays(GL_TRIANGLES, 0, 3);
     vao_unbind();
     shader_unbind();
 }
