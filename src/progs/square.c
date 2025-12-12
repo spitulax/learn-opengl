@@ -1,5 +1,11 @@
 #include "square.h"
 #include "files.h"
+#include "prog.h"
+#include "shader.h"
+#include "vao.h"
+
+static VAO    *vao;
+static Shader *shader;
 
 void square_setup(Program *prog) {
     float vertices[] = {
@@ -14,20 +20,27 @@ void square_setup(Program *prog) {
         1, 2, 3,    // second triangle
     };
 
-    vao_add_vbo(&prog->vao, vertices, sizeof(vertices), GL_STATIC_DRAW);
+    vao = program_add_vao(prog);
+    vao_add_vbo(vao, vertices, sizeof(vertices), GL_STATIC_DRAW);
     vao_vertex_attrib_ptr(
-        &prog->vao, 0, 0, 3, GL_FLOAT, false, 3 * sizeof(vertices[0]));
+        vao, 0, 0, 3, GL_FLOAT, false, 3 * sizeof(vertices[0]));
+    vao_set_ebo(vao, indices, sizeof(indices), GL_STATIC_DRAW);
 
-    vao_set_ebo(&prog->vao, indices, sizeof(indices), GL_STATIC_DRAW);
-
-    GLuint vert_shader = compile_shader(GL_VERTEX_SHADER, vert_glsl);
-    GLuint frag_shader = compile_shader(GL_FRAGMENT_SHADER, frag_glsl);
-    program_init_shader(prog, vert_shader, frag_shader);
+    GLuint vert_shader =
+        compile_shader(GL_VERTEX_SHADER, shaders_beginning_vert);
+    GLuint frag_shader =
+        compile_shader(GL_FRAGMENT_SHADER, shaders_beginning_frag);
+    shader = program_add_shader(prog, vert_shader, frag_shader);
+    delete_shader(vert_shader);
+    delete_shader(frag_shader);
 }
 
 void square_draw(const Program *prog) {
-    glUseProgram(prog->shader_prog);
-    glBindVertexArray(prog->vao.name);
+    (void) prog;
+
+    shader_bind(shader);
+    vao_bind(vao);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-    glBindVertexArray(0);
+    vao_unbind();
+    shader_unbind();
 }

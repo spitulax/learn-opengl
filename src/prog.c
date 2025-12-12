@@ -1,26 +1,33 @@
 #include "prog.h"
 #include "progs/square.h"
 #include "progs/triangle.h"
+#include "progs/two_triangles.h"
+#include "shader.h"
 #include "utils.h"
+#include "vao.h"
 
 const char *prog_str[TYPE_LEN] = {
-    [TYPE_TRIANGLE] = "triangle",
-    [TYPE_SQUARE]   = "square",
+    [TYPE_TRIANGLE]      = "triangle",
+    [TYPE_SQUARE]        = "square",
+    [TYPE_TWO_TRIANGLES] = "two_triangles",
 };
 
 SetupF prog_setup[TYPE_LEN] = {
-    [TYPE_TRIANGLE] = triangle_setup,
-    [TYPE_SQUARE]   = square_setup,
+    [TYPE_TRIANGLE]      = triangle_setup,
+    [TYPE_SQUARE]        = square_setup,
+    [TYPE_TWO_TRIANGLES] = two_triangles_setup,
 };
 
 DrawF prog_draw[TYPE_LEN] = {
-    [TYPE_TRIANGLE] = triangle_draw,
-    [TYPE_SQUARE]   = square_draw,
+    [TYPE_TRIANGLE]      = triangle_draw,
+    [TYPE_SQUARE]        = square_draw,
+    [TYPE_TWO_TRIANGLES] = two_triangles_draw,
 };
 
 InputF prog_input[TYPE_LEN] = {
-    [TYPE_TRIANGLE] = NULL,
-    [TYPE_SQUARE]   = NULL,
+    [TYPE_TRIANGLE]      = NULL,
+    [TYPE_SQUARE]        = NULL,
+    [TYPE_TWO_TRIANGLES] = NULL,
 };
 
 bool program_init(Program *self, Type type) {
@@ -50,8 +57,6 @@ bool program_init(Program *self, Type type) {
 
     glfwSetFramebufferSizeCallback(self->window, framebuffer_size_callback);
 
-    vao_init(&self->vao);
-
     self->type = type;
 
 defer:
@@ -61,8 +66,12 @@ defer:
 void program_deinit(Program *self) {
     (void) self;
 
-    vao_deinit(&self->vao);
-    glDeleteProgram(self->shader_prog);
+    for (size_t i = 0; i < self->vao_len; ++i) {
+        vao_deinit(&self->vaos[i]);
+    }
+    for (size_t i = 0; i < self->shader_len; ++i) {
+        shader_deinit(&self->shaders[i]);
+    }
     glfwTerminate();
 
     zero(self);
@@ -82,25 +91,17 @@ void program_run(Program *self) {
     }
 }
 
-void program_init_shader(Program *self,
-                         GLuint   vert_shader,
-                         GLuint   frag_shader) {
-    self->shader_prog = glCreateProgram();
-    glAttachShader(self->shader_prog, vert_shader);
-    glAttachShader(self->shader_prog, frag_shader);
-    glLinkProgram(self->shader_prog);
+VAO *program_add_vao(Program *self) {
+    VAO *vao = self->vaos + self->vao_len++;
+    vao_init(vao);
+    return vao;
+}
 
-    int  success;
-    char info_log[SHADER_INFO_LOG_SIZE];
-    glGetProgramiv(self->shader_prog, GL_LINK_STATUS, &success);
-    if (!success) {
-        glGetProgramInfoLog(
-            self->shader_prog, SHADER_INFO_LOG_SIZE, NULL, info_log);
-        eprintf("Failed to link shader: %s\n", info_log);
-    }
-
-    glDeleteShader(vert_shader);
-    glDeleteShader(frag_shader);
+Shader *
+program_add_shader(Program *self, GLuint vert_shader, GLuint frag_shader) {
+    Shader *shader = self->shaders + self->shader_len++;
+    shader_init(shader, vert_shader, frag_shader);
+    return shader;
 }
 
 Type parse_args(int argc, char **argv) {

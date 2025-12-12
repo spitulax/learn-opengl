@@ -1,5 +1,6 @@
 #pragma once
 
+#include "shader.h"
 #include "vao.h"
 
 #include "GLFW/glfw3.h"
@@ -7,20 +8,25 @@
 typedef enum {
     TYPE_TRIANGLE,
     TYPE_SQUARE,
+    TYPE_TWO_TRIANGLES,
     TYPE_LEN,
 } Type;
 
 typedef struct {
     GLFWwindow *window;
-    VAO         vao;
-    GLuint      shader_prog;
+    VAO         vaos[MAX_VAOS];
+    size_t      vao_len;
+    Shader      shaders[MAX_SHADERS];
+    size_t      shader_len;
     Type        type;
 } Program;
 
 bool program_init(Program *self, Type type);
 void program_deinit(Program *self);
 void program_run(Program *self);
-void program_init_shader(Program *self, GLuint vert_shader, GLuint frag_shader);
+VAO *program_add_vao(Program *self);
+Shader *
+program_add_shader(Program *self, GLuint vert_shader, GLuint frag_shader);
 
 Type parse_args(int argc, char **argv);
 void usage(const char *prog);

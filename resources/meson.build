@@ -1,7 +1,6 @@
-resource_files = files(
-  'vert.glsl',
-  'frag.glsl',
-)
+resource_files = []
+
+subdir('shaders')
 
 bundled_resources = custom_target(
   'bundled-resources',

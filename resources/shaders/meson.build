@@ -1,0 +1,5 @@
+resource_files += files(
+  'beginning.frag',
+  'beginning.vert',
+  'two_triangles_second.frag'
+)
