@@ -6,6 +6,7 @@ typedef struct {
     GLuint name;
 } Shader;
 
+// The input shaders are not deleted by this function.
 void shader_init(Shader *self, GLuint vert_shader, GLuint frag_shader);
 void shader_deinit(Shader *self);
 void shader_bind(const Shader *self);

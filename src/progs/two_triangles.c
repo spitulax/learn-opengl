@@ -1,5 +1,8 @@
 #include "two_triangles.h"
-#include "files.h"
+
+include_file(shaders_beginning_frag);
+include_file(shaders_beginning_vert);
+include_file(shaders_two_triangles_second_frag);
 
 static VAO    *vao[2];
 static Shader *shader[2];

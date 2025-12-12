@@ -1,8 +1,10 @@
 #include "triangle.h"
-#include "files.h"
 #include "prog.h"
 #include "shader.h"
 #include "vao.h"
+
+include_file(shaders_beginning_frag);
+include_file(shaders_beginning_vert);
 
 static VAO    *vao;
 static Shader *shader;

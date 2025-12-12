@@ -24,7 +24,10 @@ typedef struct {
 bool program_init(Program *self, Type type);
 void program_deinit(Program *self);
 void program_run(Program *self);
+// Add a VAO that is managed by `Program`.
 VAO *program_add_vao(Program *self);
+// Add a shader object that is managed by `Program`.
+// The input shaders are not deleted by this function.
 Shader *
 program_add_shader(Program *self, GLuint vert_shader, GLuint frag_shader);
 
