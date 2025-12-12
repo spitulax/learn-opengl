@@ -1,4 +1,5 @@
 src += files(
+  'circle.c',
   'shader_triangle.c',
   'square.c',
   'texture.c',

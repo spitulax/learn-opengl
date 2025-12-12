@@ -24,6 +24,7 @@ build/learn-opengl <mini-program>
 - `two_triangles`
 - `shader_triangle`
 - `texture`
+- `circle`
 
 ## Credits
 
