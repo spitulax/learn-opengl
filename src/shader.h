@@ -14,7 +14,7 @@ void  shader_unbind();
 GLint shader_get_uniform(const Shader *self, const char *name);
 
 #define compile_shader(type, file_name)                                        \
-    compile_shader_manual(type,                                                \
+    compile_shader_manual((type),                                              \
                           #file_name,                                          \
                           ___resources_##file_name,                            \
                           ___resources_##file_name##_len)

@@ -1,3 +1,4 @@
+#include "texture.h"
 #include "prog.h"
 #include "shader.h"
 #include "utils.h"
@@ -10,9 +11,9 @@ include_file(shaders_texture_frag);
 include_file(shaders_texture_vert);
 include_file(textures_container_jpg);
 
-static VAO    vao;
-static Shader shader;
-static GLuint texture;
+static VAO     vao;
+static Shader  shader;
+static Texture texture;
 
 void texture_start(Program *prog) {
     (void) prog;
@@ -40,31 +41,8 @@ void texture_start(Program *prog) {
         &vao, 1, 2, 3 * sizeof(float), stride, GL_FLOAT, false);
     vao_set_ebo(&vao, indices, sizeof(indices), GL_STATIC_DRAW);
 
-    int32_t  width, height, channels;
-    uint8_t *data =
-        stbi_load_from_memory(resource(textures_container_jpg),
-                              (int32_t) resource_len(textures_container_jpg),
-                              &width,
-                              &height,
-                              &channels,
-                              0);
-
-    assert(data && "Failed to load texture.");
-
-    glGenTextures(1, &texture);
-    glBindTexture(GL_TEXTURE_2D, texture);
-    glTexImage2D(GL_TEXTURE_2D,
-                 0,
-                 GL_RGB,
-                 width,
-                 height,
-                 0,
-                 GL_RGB,
-                 GL_UNSIGNED_BYTE,
-                 data);
-    glGenerateMipmap(GL_TEXTURE_2D);
-
-    stbi_image_free(data);
+    texture_init_from_resource(
+        &texture, 0, textures_container_jpg, GL_RGB, GL_RGB);
 
     GLuint vert_shader = compile_shader(GL_VERTEX_SHADER, shaders_texture_vert);
     GLuint frag_shader =
@@ -78,11 +56,11 @@ void texture_draw(Program *prog) {
     (void) prog;
 
     shader_bind(&shader);
-    glBindTexture(GL_TEXTURE_2D, texture);
+    texture_bind(&texture, 0);
     vao_bind(&vao);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
     vao_unbind();
-    glBindTexture(GL_TEXTURE_2D, 0);
+    texture_unbind();
     shader_unbind();
 }
 
@@ -95,5 +73,5 @@ void texture_end(Program *prog) {
 
     vao_deinit(&vao);
     shader_deinit(&shader);
-    glDeleteTextures(1, &texture);
+    texture_deinit(&texture);
 }
