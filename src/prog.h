@@ -10,16 +10,18 @@ typedef enum {
     TYPE_SQUARE,
     TYPE_TWO_TRIANGLES,
     TYPE_SHADER_TRIANGLE,
+    TYPE_TEXTURE,
     TYPE_LEN,
 } Type;
 
 typedef struct {
     GLFWwindow *window;
-    VAO         vaos[MAX_VAOS];
-    size_t      vao_len;
-    Shader      shaders[MAX_SHADERS];
-    size_t      shader_len;
-    Type        type;
+    // TODO: For more flexibility maybe don't manage these.
+    VAO    vaos[MAX_VAOS];
+    size_t vao_len;
+    Shader shaders[MAX_SHADERS];
+    size_t shader_len;
+    Type   type;
 } Program;
 
 bool program_init(Program *self, Type type);

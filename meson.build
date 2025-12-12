@@ -41,6 +41,9 @@ executable(
   src,
   include_directories : include,
   dependencies : dependencies,
-  link_with : [glad],
+  link_with : [
+    glad,
+    stb_image,
+  ],
   install : true,
 )

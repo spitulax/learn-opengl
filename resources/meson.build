@@ -1,6 +1,7 @@
 resource_files = []
 
 subdir('shaders')
+subdir('textures')
 
 bundled_resources = custom_target(
   'bundled-resources',

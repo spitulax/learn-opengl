@@ -31,4 +31,7 @@
     extern unsigned char ___resources_##name[];                                \
     extern unsigned int  ___resources_##name##_len
 
+#define resource(name)     ___resources_##name
+#define resource_len(name) ___resources_##name##_len
+
 typedef GLsizeiptr ssize_t;

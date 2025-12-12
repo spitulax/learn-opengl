@@ -23,6 +23,7 @@ build/learn-opengl <mini-program>
 - `square`
 - `two_triangles`
 - `shader_triangle`
+- `texture`
 
 ## Credits
 

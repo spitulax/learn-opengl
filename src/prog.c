@@ -1,6 +1,7 @@
 #include "prog.h"
 #include "progs/shader_triangle.h"
 #include "progs/square.h"
+#include "progs/texture.h"
 #include "progs/triangle.h"
 #include "progs/two_triangles.h"
 #include "shader.h"
@@ -12,6 +13,7 @@ const char *prog_str[TYPE_LEN] = {
     [TYPE_SQUARE]          = "square",
     [TYPE_TWO_TRIANGLES]   = "two_triangles",
     [TYPE_SHADER_TRIANGLE] = "shader_triangle",
+    [TYPE_TEXTURE]         = "texture",
 };
 
 SetupF prog_setup[TYPE_LEN] = {
@@ -19,6 +21,7 @@ SetupF prog_setup[TYPE_LEN] = {
     [TYPE_SQUARE]          = square_setup,
     [TYPE_TWO_TRIANGLES]   = two_triangles_setup,
     [TYPE_SHADER_TRIANGLE] = shader_triangle_setup,
+    [TYPE_TEXTURE]         = texture_setup,
 };
 
 DrawF prog_draw[TYPE_LEN] = {
@@ -26,6 +29,7 @@ DrawF prog_draw[TYPE_LEN] = {
     [TYPE_SQUARE]          = square_draw,
     [TYPE_TWO_TRIANGLES]   = two_triangles_draw,
     [TYPE_SHADER_TRIANGLE] = shader_triangle_draw,
+    [TYPE_TEXTURE]         = texture_draw,
 };
 
 InputF prog_input[TYPE_LEN] = {
@@ -131,6 +135,7 @@ Type parse_args(int argc, char **argv) {
         }
     }
 
+    // TODO: Fix usage
     eprintf("Invalid type `%s`\n", subcommand);
     usage(prog);
     exit(1);
