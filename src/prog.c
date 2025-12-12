@@ -135,21 +135,17 @@ Type parse_args(int argc, char **argv) {
         }
     }
 
-    // TODO: Fix usage
-    eprintf("Invalid type `%s`\n", subcommand);
+    eprintf("Invalid mini-program `%s`\n", subcommand);
     usage(prog);
     exit(1);
 }
 
 void usage(const char *prog) {
-    eprintf("Usage: %s <", prog);
+    eprintf("Usage: %s <mini-program>\n", prog);
+    eprintf("\nMini-programs:\n");
     for (size_t i = 0; i < TYPE_LEN; ++i) {
-        if (i > 0) {
-            eprintf(", ");
-        }
-        eprintf("%s", prog_str[i]);
+        eprintf("- %s\n", prog_str[i]);
     }
-    eprintf(">\n");
 }
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
