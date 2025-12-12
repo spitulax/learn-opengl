@@ -2,6 +2,7 @@
 
 #include "prog.h"
 #include "progs.h"
+#include <stb_image.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -61,6 +62,8 @@ bool program_init(Program *self, Type type) {
     glfwSetFramebufferSizeCallback(self->window, framebuffer_size_callback);
 
     self->type = type;
+
+    stbi_set_flip_vertically_on_load(true);
 
 defer:
     if (!res) {
