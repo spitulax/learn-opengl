@@ -1,5 +1,7 @@
-#include "texture.h"
+#include "prog.h"
+#include "shader.h"
 #include "utils.h"
+#include "vao.h"
 #include <assert.h>
 #include <stb_image.h>
 #include <stdint.h>
@@ -8,12 +10,13 @@ include_file(shaders_texture_frag);
 include_file(shaders_texture_vert);
 include_file(textures_container_jpg);
 
-static VAO    *vao;
-static Shader *shader;
-// TODO: Delete texture.
+static VAO    vao;
+static Shader shader;
 static GLuint texture;
 
-void texture_setup(Program *prog) {
+void texture_start(Program *prog) {
+    (void) prog;
+
     /* clang-format off */
     float vertices[] = {
         /* vertices      */ /* texcoords */
@@ -29,13 +32,13 @@ void texture_setup(Program *prog) {
         1, 2, 3,    // second triangle
     };
 
-    vao = program_add_vao(prog);
-    vao_add_vbo(vao, vertices, sizeof(vertices), GL_STATIC_DRAW);
+    vao_init(&vao);
+    vao_add_vbo(&vao, vertices, sizeof(vertices), GL_STATIC_DRAW);
     const int32_t stride = 5 * sizeof(float);
-    vao_vertex_attrib_ptr(vao, 0, 3, 0, stride, GL_FLOAT, false);
+    vao_vertex_attrib_ptr(&vao, 0, 3, 0, stride, GL_FLOAT, false);
     vao_vertex_attrib_ptr(
-        vao, 1, 2, 3 * sizeof(float), stride, GL_FLOAT, false);
-    vao_set_ebo(vao, indices, sizeof(indices), GL_STATIC_DRAW);
+        &vao, 1, 2, 3 * sizeof(float), stride, GL_FLOAT, false);
+    vao_set_ebo(&vao, indices, sizeof(indices), GL_STATIC_DRAW);
 
     int32_t  width, height, channels;
     uint8_t *data =
@@ -66,19 +69,31 @@ void texture_setup(Program *prog) {
     GLuint vert_shader = compile_shader(GL_VERTEX_SHADER, shaders_texture_vert);
     GLuint frag_shader =
         compile_shader(GL_FRAGMENT_SHADER, shaders_texture_frag);
-    shader = program_add_shader(prog, vert_shader, frag_shader);
+    shader_init(&shader, vert_shader, frag_shader);
     delete_shader(vert_shader);
     delete_shader(frag_shader);
 }
 
-void texture_draw(const Program *prog) {
+void texture_draw(Program *prog) {
     (void) prog;
 
-    shader_bind(shader);
+    shader_bind(&shader);
     glBindTexture(GL_TEXTURE_2D, texture);
-    vao_bind(vao);
+    vao_bind(&vao);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
     vao_unbind();
     glBindTexture(GL_TEXTURE_2D, 0);
     shader_unbind();
+}
+
+void texture_input(Program *prog) {
+    (void) prog;
+}
+
+void texture_end(Program *prog) {
+    (void) prog;
+
+    vao_deinit(&vao);
+    shader_deinit(&shader);
+    glDeleteTextures(1, &texture);
 }

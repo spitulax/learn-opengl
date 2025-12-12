@@ -1,43 +1,37 @@
-#include "prog.h"
-#include "progs/shader_triangle.h"
-#include "progs/square.h"
-#include "progs/texture.h"
-#include "progs/triangle.h"
-#include "progs/two_triangles.h"
-#include "shader.h"
 #include "utils.h"
-#include "vao.h"
 
-const char *prog_str[TYPE_LEN] = {
-    [TYPE_TRIANGLE]        = "triangle",
-    [TYPE_SQUARE]          = "square",
-    [TYPE_TWO_TRIANGLES]   = "two_triangles",
-    [TYPE_SHADER_TRIANGLE] = "shader_triangle",
-    [TYPE_TEXTURE]         = "texture",
-};
+#include "prog.h"
+#include "progs.h"
+#include <stdio.h>
+#include <stdlib.h>
 
-SetupF prog_setup[TYPE_LEN] = {
-    [TYPE_TRIANGLE]        = triangle_setup,
-    [TYPE_SQUARE]          = square_setup,
-    [TYPE_TWO_TRIANGLES]   = two_triangles_setup,
-    [TYPE_SHADER_TRIANGLE] = shader_triangle_setup,
-    [TYPE_TEXTURE]         = texture_setup,
-};
+#define PROG(name)                                                             \
+    void name##_start(Program *prog);                                          \
+    void name##_draw(Program *prog);                                           \
+    void name##_input(Program *prog);                                          \
+    void name##_end(Program *prog);
+PROGS
+#undef PROG
 
-DrawF prog_draw[TYPE_LEN] = {
-    [TYPE_TRIANGLE]        = triangle_draw,
-    [TYPE_SQUARE]          = square_draw,
-    [TYPE_TWO_TRIANGLES]   = two_triangles_draw,
-    [TYPE_SHADER_TRIANGLE] = shader_triangle_draw,
-    [TYPE_TEXTURE]         = texture_draw,
-};
+#define PROG(name) [TYPE_##name] = #name,
+const char *prog_str[TYPE_LEN] = { PROGS };
+#undef PROG
 
-InputF prog_input[TYPE_LEN] = {
-    [TYPE_TRIANGLE]        = NULL,
-    [TYPE_SQUARE]          = NULL,
-    [TYPE_TWO_TRIANGLES]   = NULL,
-    [TYPE_SHADER_TRIANGLE] = NULL,
-};
+#define PROG(name) [TYPE_##name] = name##_start,
+ProgF prog_start[TYPE_LEN] = { PROGS };
+#undef PROG
+
+#define PROG(name) [TYPE_##name] = name##_draw,
+ProgF prog_draw[TYPE_LEN] = { PROGS };
+#undef PROG
+
+#define PROG(name) [TYPE_##name] = name##_input,
+ProgF prog_input[TYPE_LEN] = { PROGS };
+#undef PROG
+
+#define PROG(name) [TYPE_##name] = name##_end,
+ProgF prog_end[TYPE_LEN] = { PROGS };
+#undef PROG
 
 bool program_init(Program *self, Type type) {
     bool res = true;
@@ -69,24 +63,26 @@ bool program_init(Program *self, Type type) {
     self->type = type;
 
 defer:
+    if (!res) {
+        self = NULL;
+    }
+
     return res;
 }
 
 void program_deinit(Program *self) {
-    (void) self;
+    if (self) {
+        end(self);
+    }
 
-    for (size_t i = 0; i < self->vao_len; ++i) {
-        vao_deinit(&self->vaos[i]);
-    }
-    for (size_t i = 0; i < self->shader_len; ++i) {
-        shader_deinit(&self->shaders[i]);
-    }
     glfwTerminate();
 
     zero(self);
 }
 
 void program_run(Program *self) {
+    start(self);
+
     while (!glfwWindowShouldClose(self->window)) {
         input(self);
 
@@ -98,19 +94,6 @@ void program_run(Program *self) {
         glfwSwapBuffers(self->window);
         glfwPollEvents();
     }
-}
-
-VAO *program_add_vao(Program *self) {
-    VAO *vao = self->vaos + self->vao_len++;
-    vao_init(vao);
-    return vao;
-}
-
-Shader *
-program_add_shader(Program *self, GLuint vert_shader, GLuint frag_shader) {
-    Shader *shader = self->shaders + self->shader_len++;
-    shader_init(shader, vert_shader, frag_shader);
-    return shader;
 }
 
 Type parse_args(int argc, char **argv) {
@@ -154,18 +137,12 @@ void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
     glViewport(0, 0, width, height);
 }
 
-void setup(Program *prog) {
-    const SetupF fn = prog_setup[prog->type];
-    if (fn) {
-        fn(prog);
-    }
+void start(Program *prog) {
+    prog_start[prog->type](prog);
 }
 
-void draw(const Program *prog) {
-    const DrawF fn = prog_draw[prog->type];
-    if (fn) {
-        fn(prog);
-    }
+void draw(Program *prog) {
+    prog_draw[prog->type](prog);
 }
 
 void input(Program *prog) {
@@ -173,8 +150,9 @@ void input(Program *prog) {
         glfwSetWindowShouldClose(prog->window, true);
     }
 
-    const InputF fn = prog_input[prog->type];
-    if (fn) {
-        fn(prog);
-    }
+    prog_input[prog->type](prog);
+}
+
+void end(Program *prog) {
+    prog_end[prog->type](prog);
 }

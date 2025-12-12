@@ -10,8 +10,6 @@ int main(int argc, char *argv[]) {
         return_defer(1);
     }
 
-    setup(&prog);
-
     program_run(&prog);
 
 defer:

@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <GLFW/glfw3.h>
+
 #define WINDOW_WIDTH         800
 #define WINDOW_HEIGHT        600
 #define SHADER_INFO_LOG_SIZE 1024
@@ -33,5 +35,11 @@
 
 #define resource(name)     ___resources_##name
 #define resource_len(name) ___resources_##name##_len
+
+#define prog_funcs(name)                                                       \
+    void##name##_setup(Program *prog);                                         \
+    void##name##_draw(Program *prog);                                          \
+    void##name##_input(Program *prog);                                         \
+    void##name##_close(Program *prog)
 
 typedef GLsizeiptr ssize_t;
