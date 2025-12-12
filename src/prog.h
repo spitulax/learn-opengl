@@ -10,8 +10,6 @@ typedef enum {
     TYPE_LEN,
 } Type;
 
-extern const char *type_str[TYPE_LEN];
-
 typedef struct {
     GLFWwindow *window;
     VAO         vao;
@@ -28,3 +26,16 @@ Type parse_args(int argc, char **argv);
 void usage(const char *prog);
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
+
+typedef void (*SetupF)(Program *prog);
+typedef void (*DrawF)(const Program *prog);
+typedef void (*InputF)(Program *window);
+
+extern const char *prog_str[TYPE_LEN];
+extern SetupF      prog_setup[TYPE_LEN];
+extern DrawF       prog_draw[TYPE_LEN];
+extern InputF      prog_input[TYPE_LEN];
+
+void setup(Program *prog);
+void draw(const Program *prog);
+void input(Program *window);

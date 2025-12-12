@@ -1,10 +1,26 @@
 #include "prog.h"
-#include "render.h"
+#include "progs/square.h"
+#include "progs/triangle.h"
 #include "utils.h"
 
-const char *type_str[TYPE_LEN] = {
+const char *prog_str[TYPE_LEN] = {
     [TYPE_TRIANGLE] = "triangle",
     [TYPE_SQUARE]   = "square",
+};
+
+SetupF prog_setup[TYPE_LEN] = {
+    [TYPE_TRIANGLE] = triangle_setup,
+    [TYPE_SQUARE]   = square_setup,
+};
+
+DrawF prog_draw[TYPE_LEN] = {
+    [TYPE_TRIANGLE] = triangle_draw,
+    [TYPE_SQUARE]   = square_draw,
+};
+
+InputF prog_input[TYPE_LEN] = {
+    [TYPE_TRIANGLE] = NULL,
+    [TYPE_SQUARE]   = NULL,
 };
 
 bool program_init(Program *self, Type type) {
@@ -54,7 +70,7 @@ void program_deinit(Program *self) {
 
 void program_run(Program *self) {
     while (!glfwWindowShouldClose(self->window)) {
-        process_input(self);
+        input(self);
 
         glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
@@ -103,7 +119,7 @@ Type parse_args(int argc, char **argv) {
         exit(0);
     } else {
         for (size_t i = 0; i < TYPE_LEN; ++i) {
-            if (scmp(subcommand, type_str[i])) {
+            if (scmp(subcommand, prog_str[i])) {
                 return (Type) i;
             }
         }
@@ -120,7 +136,7 @@ void usage(const char *prog) {
         if (i > 0) {
             eprintf(", ");
         }
-        eprintf("%s", type_str[i]);
+        eprintf("%s", prog_str[i]);
     }
     eprintf(">\n");
 }
@@ -129,4 +145,29 @@ void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
     (void) window;
 
     glViewport(0, 0, width, height);
+}
+
+void setup(Program *prog) {
+    const SetupF fn = prog_setup[prog->type];
+    if (fn) {
+        fn(prog);
+    }
+}
+
+void draw(const Program *prog) {
+    const DrawF fn = prog_draw[prog->type];
+    if (fn) {
+        fn(prog);
+    }
+}
+
+void input(Program *prog) {
+    if (glfwGetKey(prog->window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
+        glfwSetWindowShouldClose(prog->window, true);
+    }
+
+    const InputF fn = prog_input[prog->type];
+    if (fn) {
+        fn(prog);
+    }
 }

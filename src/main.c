@@ -1,5 +1,4 @@
 #include "prog.h"
-#include "render.h"
 
 int main(int argc, char *argv[]) {
     int res = 0;
