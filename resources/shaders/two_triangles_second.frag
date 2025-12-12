@@ -1,3 +1,5 @@
+// Shader used by `two_triangles` program to render the second triangle.
+
 #version 330 core
 
 out vec4 FragColor;
