@@ -13,7 +13,7 @@
 #define WINDOW_WIDTH         800
 #define WINDOW_HEIGHT        600
 #define SHADER_INFO_LOG_SIZE 1024
-#define MAX_VBOS             16
+#define MAX_BUFFERS          16
 
 #define eprintf(...) fprintf(stderr, __VA_ARGS__)
 #define zero(ptr)    memset((ptr), 0, sizeof(*(ptr)))
@@ -47,8 +47,9 @@ typedef GLsizeiptr ssize_t;
 
 typedef struct {
     GLuint name;
-    GLuint vbos[MAX_VBOS];
+    GLuint vbos[MAX_BUFFERS];
     size_t vbo_len;
+    GLuint ebo;
 } VAO;
 
 typedef enum {
@@ -91,8 +92,10 @@ program_init_shader(Program *self, GLuint vert_shader, GLuint frag_shader);
 /* VAO */
 static void vao_init(VAO *self);
 static void vao_deinit(VAO *self);
-static void vao_add_vbo(
-    VAO *self, GLenum type, const void *data, ssize_t size, GLenum usage);
+static void
+vao_add_vbo(VAO *self, const void *data, ssize_t size, GLenum usage);
+static void
+vao_set_ebo(VAO *self, const void *data, ssize_t size, GLenum usage);
 static void vao_vertex_attrib_ptr(VAO     *self,
                                   GLuint   vbo,
                                   uint32_t index,
@@ -298,17 +301,26 @@ static void vao_deinit(VAO *self) {
         glDeleteVertexArrays(1, &self->name);
     }
 
-    glDeleteBuffers(MAX_VBOS, self->vbos);
+    glDeleteBuffers(MAX_BUFFERS, self->vbos);
+
+    glDeleteBuffers(1, &self->ebo);
 
     zero(self);
 }
 
-static void vao_add_vbo(
-    VAO *self, GLenum type, const void *data, GLsizeiptr size, GLenum usage) {
+static void
+vao_add_vbo(VAO *self, const void *data, GLsizeiptr size, GLenum usage) {
     GLuint *vbo = self->vbos + self->vbo_len++;
     glGenBuffers(1, vbo);
-    glBindBuffer(type, *vbo);
-    glBufferData(type, size, data, usage);
+    glBindBuffer(GL_ARRAY_BUFFER, *vbo);
+    glBufferData(GL_ARRAY_BUFFER, size, data, usage);
+}
+
+static void
+vao_set_ebo(VAO *self, const void *data, ssize_t size, GLenum usage) {
+    glGenBuffers(1, &self->ebo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self->ebo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, size, data, usage);
 }
 
 static void vao_vertex_attrib_ptr(VAO     *self,
@@ -335,13 +347,32 @@ static void setup(Program *prog) {
                 0.5f,  -0.5f, 0.0f,    //
             };
 
-            vao_add_vbo(&prog->vao,
-                        GL_ARRAY_BUFFER,
-                        vertices,
-                        sizeof(vertices),
-                        GL_STATIC_DRAW);
+            vao_add_vbo(&prog->vao, vertices, sizeof(vertices), GL_STATIC_DRAW);
             vao_vertex_attrib_ptr(
                 &prog->vao, 0, 0, 3, GL_FLOAT, false, 3 * sizeof(vertices[0]));
+
+            GLuint vert_shader = compile_shader(GL_VERTEX_SHADER, vert_glsl);
+            GLuint frag_shader = compile_shader(GL_FRAGMENT_SHADER, frag_glsl);
+            program_init_shader(prog, vert_shader, frag_shader);
+        } break;
+        case TYPE_SQUARE: {
+            float vertices[] = {
+                0.5f,  0.5f,  0.0f,    // top right
+                0.5f,  -0.5f, 0.0f,    // bottom right
+                -0.5f, -0.5f, 0.0f,    // bottom left
+                -0.5f, 0.5f,  0.0f     // top left
+            };
+
+            uint32_t indices[] = {
+                0, 1, 3,    // first triangle
+                1, 2, 3,    // second triangle
+            };
+
+            vao_add_vbo(&prog->vao, vertices, sizeof(vertices), GL_STATIC_DRAW);
+            vao_vertex_attrib_ptr(
+                &prog->vao, 0, 0, 3, GL_FLOAT, false, 3 * sizeof(vertices[0]));
+
+            vao_set_ebo(&prog->vao, indices, sizeof(indices), GL_STATIC_DRAW);
 
             GLuint vert_shader = compile_shader(GL_VERTEX_SHADER, vert_glsl);
             GLuint frag_shader = compile_shader(GL_FRAGMENT_SHADER, frag_glsl);
@@ -359,6 +390,13 @@ static void draw(const Program *prog) {
             glUseProgram(prog->shader_prog);
             glBindVertexArray(prog->vao.name);
             glDrawArrays(GL_TRIANGLES, 0, 3);
+            glBindVertexArray(0);
+        } break;
+        case TYPE_SQUARE: {
+            glUseProgram(prog->shader_prog);
+            glBindVertexArray(prog->vao.name);
+            glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+            glBindVertexArray(0);
         } break;
         default: {
             panic("Unimplemented type\n");
